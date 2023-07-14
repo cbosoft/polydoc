@@ -23,9 +23,10 @@ class Project:
         self.root = root
         self.graph = nx.DiGraph()
         self.links = []
+        self.sources = []
     
     def parse(self, fn: str):
-        nodes = parse(fn, relative_to=os.path.dirname(self.root))
+        nodes = parse(fn, relative_to=os.path.dirname(self.root), file_list=self.sources)
         for nodekey, unit in nodes.items():
             self.graph.add_node(nodekey, unit=unit)
             if unit.parent is not None:
