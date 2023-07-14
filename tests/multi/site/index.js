@@ -11,7 +11,7 @@ function init() {
 /// Simple function to POST an object as JSON to the server
 /// sent data is handled by the [WebRequestHandler::do_POST](multi/server/server.py|Method:WebRequestHandler/do_POST) method.
 /// params:
-///     - o :: the object to be sent
+///     - o - the object to be sent
 /// returns:
 ///     - promise of response object
 export function send_data(o) {
