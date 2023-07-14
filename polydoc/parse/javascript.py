@@ -18,7 +18,7 @@ def parse_javascript_file(filename: str, relative_to: str) -> Dict[str, Unit]:
     for m in FUNCTION_RE.finditer(contents):
         doc, fname = m.groups()
         doc = doc.strip().replace('///', '').replace('//', '')
-        line_no = contents[:m.end()].count('\n')
+        line_no = contents[:m.end()].count('\n') + 1
 
         units_by_blockname[f'{filename}@{line_no}|{fname}'] = Unit(
             fname, 'Function', filename, line_no, doc, None, language='Javascript'
