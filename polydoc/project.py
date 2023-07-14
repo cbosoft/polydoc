@@ -20,6 +20,7 @@ class Project:
 
     def __init__(self, name: str, root: str):
         self.name = name
+        self.subprojects = {}
         self.root = root
         self.graph = nx.DiGraph()
         self.links = []
@@ -33,6 +34,36 @@ class Project:
                 self.graph.add_edge(nodekey, unit.parent.ident, kind='heritage')
             for link in unit.links:
                 self.links.append((nodekey, link))
+    def guess_subprojects(self):
+        versions = []
+        version_re = re.compile('.*(?:let|var|const)?\\s*version(?::\\s?\\w+)?\\s*=\\s+[\'"](.*)[\'"];?.*')
+        relto = os.path.dirname(self.root)
+        for source in self.sources:
+            if 'version' in source or 'Cargo.toml' in source:
+                with open(os.path.join(relto, source)) as f:
+                    contents = f.read().lower()
+                    m = version_re.match(contents)
+                    if m:
+                        v = m.group(1)
+                        if v.startswith('v'):
+                            v = v[1:]
+                        versions.append((source, v))
+
+        unnamed_projects = [p for p, _ in versions]
+        named_projects = []
+        level = 0
+        while unnamed_projects:
+            parts = [up.split('/')[level] for up in unnamed_projects]
+            for i, part in reversed(list(enumerate(parts))):
+                count = parts.count(part)
+                if count > 1:
+                    continue
+                unnamed_projects.pop(i)
+                named_projects.append((part, versions[i][1]))
+            level += 1
+        
+        for name, version in named_projects:
+            self.subprojects[name] = version
     
     def organise_links(self):
         organised = []
