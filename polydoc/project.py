@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 
 from .unit import Unit
 from .parse import parse
+from .parse.utils import markdown2html
+from .templating import format_source_as_html, format_doc_as_html
 
 
 class Project:
@@ -23,17 +25,20 @@ class Project:
         self.subprojects = {}
         self.root = root
         self.graph = nx.DiGraph()
-        self.links = []
+        self.links = {}
         self.sources = []
     
     def parse(self, fn: str):
+        if self.name is None:
+            self.name = os.path.basename(self.root)
         nodes = parse(fn, relative_to=os.path.dirname(self.root), file_list=self.sources)
         for nodekey, unit in nodes.items():
             self.graph.add_node(nodekey, unit=unit)
             if unit.parent is not None:
                 self.graph.add_edge(nodekey, unit.parent.ident, kind='heritage')
-            for link in unit.links:
-                self.links.append((nodekey, link))
+            for srck, href in unit.links.items():
+                self.links[(nodekey, srck)] = href
+    
     def guess_subprojects(self):
         versions = []
         version_re = re.compile('.*(?:let|var|const)?\\s*version(?::\\s?\\w+)?\\s*=\\s+[\'"](.*)[\'"];?.*')
@@ -64,13 +69,12 @@ class Project:
         
         for name, version in named_projects:
             self.subprojects[name] = version
+
     
     def organise_links(self):
-        organised = []
-        for (src, link) in self.links:
+        for (src, srck), link in self.links.items():
             print(f'LINK {src}->{link}')
             if link in self.graph.nodes:
-                organised.append((src, link))
                 continue
             
             m = self.LINK_PARTS_RE.match(link)
@@ -91,9 +95,9 @@ class Project:
             ], key=lambda s: len(s))
 
             if potential_nodes:
-                organised.append((src, potential_nodes[0]))
+                self.links[(src, srck)] = potential_nodes[0]
         
-        for u, v in organised:
+        for (u, _), v in self.links.items():
             if not self.graph.has_edge(u, v):
                 self.graph.add_edge(u, v, kind='link')
 
@@ -120,3 +124,71 @@ class Project:
         plt.gca().set_aspect('equal')
         plt.tight_layout()
         plt.show()
+
+    def html_for_source(self, source_file: str) -> str:
+        fp_source = os.path.join(os.path.dirname(self.root), source_file)
+        with open(fp_source) as f:
+            contents = f.readlines()
+        for unit in nx.get_node_attributes(self.graph, 'unit').values():
+            unit_path = os.path.relpath(unit.path, os.path.dirname('polydoc/sources/'+source_file))
+            print(unit.source_file_path, source_file, unit_path)
+            if unit.source_file_path == source_file:
+                contents[unit.line_no - 1] = f'<a id="l{unit.line_no}" href="{unit_path}">' + contents[unit.line_no - 1] + '</a>'
+        contents = ''.join(contents)
+        return format_source_as_html(
+            index=os.path.relpath('polydoc/sources/' + os.path.dirname(self.root) + '/index.html', source_file),
+            project_name=self.name,
+            subprojects=self.subprojects,
+            all_source_files=[],
+            source_file_path=source_file,
+            source_code=contents,
+        )
+    
+    def get_doc_fixed_links_html(self, unit: Unit) -> str:
+        this_node_links = {
+            srck: href
+            for (src, srck), href in self.links.items()
+            if src == unit.ident
+        }
+        unit_doc = unit.doc
+        for srck, href in this_node_links.items():
+            href_unit = nx.get_node_attributes(self.graph, 'unit')[href]
+            local_href = href_unit.path
+            local_href = os.path.relpath(local_href, os.path.dirname(unit.path))
+            link = f'<a href="{local_href}">{href_unit.name}</a>'
+            unit_doc = unit_doc.replace(srck, link)
+        unit_doc = markdown2html(unit_doc)
+        print(repr(unit_doc))
+        return unit_doc
+    
+    def html_for_doc(self, unit: Unit) -> str:
+        unit_doc = self.get_doc_fixed_links_html(unit)
+        source_path = os.path.relpath(f'polydoc/sources/{unit.source_file_path}.html', os.path.dirname(unit.path))
+        return format_doc_as_html(
+            index=os.path.relpath('polydoc/sources/' + os.path.dirname(self.root) + '/index.html', unit.path),
+            project_name=self.name,
+            subprojects=self.subprojects,
+            all_source_files=[],
+            item_name=unit.name,
+            item_kind=unit.kind,
+            item_source=source_path,
+            item_line_no=unit.line_no,
+            doc_string=unit_doc,
+        )
+    
+    def write_documentation(self):
+        files = {}
+        for source_file in self.sources:
+            files[f'polydoc/sources/{source_file}.html'] = self.html_for_source(source_file)
+        
+        units = nx.get_node_attributes(self.graph, 'unit')
+        for unit in units.values():
+            files[unit.path] = self.html_for_doc(unit)
+
+        for filename, filecontents in files.items():
+            filename = os.path.join(self.root, filename)
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            print('WRITING', filename)
+            with open(filename, 'w') as f:
+                f.write(filecontents)
+            

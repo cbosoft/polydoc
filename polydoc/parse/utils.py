@@ -1,4 +1,5 @@
 from typing import Tuple
+import re
 
 
 def measure_indent(line: str, indent_char=None) -> Tuple[int, str]:
@@ -21,3 +22,41 @@ def measure_indent(line: str, indent_char=None) -> Tuple[int, str]:
         else:
             break
     return indent_char, indent
+
+
+class _Markdown2HTML:
+
+    MD_H1_RE = re.compile(r'^(#[^#](.*))$', re.MULTILINE)
+    MD_H2_RE = re.compile(r'^(##[^#](.*))$', re.MULTILINE)
+    MD_H3_RE = re.compile(r'^(###[^#](.*))$', re.MULTILINE)
+    MD_H4_RE = re.compile(r'^(####[^#](.*))$', re.MULTILINE)
+    MD_ITALIC_RE = re.compile(r'[^\*](\*(\w(?:.*?\w)?)\*)[^\*]?')
+    MD_BOLD_RE = re.compile(r'[^\*](\*\*(\w(?:.*?\w)?)\*\*)[^\*]?')
+    MD_CODE_RE = re.compile(r'[^\*](`(\w(?:.*?\w)?)`)[^\*]?')
+
+    TRANSLATIONS = [
+        (MD_H1_RE, 'h1'),
+        (MD_H2_RE, 'h2'),
+        (MD_H3_RE, 'h3'),
+        (MD_H4_RE, 'h4'),
+        (MD_ITALIC_RE, 'i'),
+        (MD_BOLD_RE, 'b'),
+        (MD_CODE_RE, 'pre'),
+    ]
+
+    MD_UL_RE = re.compile(r'^((\s*-.*)+)', re.MULTILINE)
+
+    def convert(self, markdown: str) -> str:
+        html = markdown
+        for regex, tag in self.TRANSLATIONS:
+            for m in reversed(list(regex.finditer(html))):
+                html = html[:m.start(1)] + f'<{tag}>' + m.group(2) + f'</{tag}>' + html[m.end(1):]
+        
+        for m in reversed(list(self.MD_UL_RE.finditer(html))):
+            ul = m.group(1)
+            html = html[:m.start(1)] + '<ul>\n  <li>' + '</li>\n  <li>'.join([i.lstrip()[1:].lstrip() for i in ul.split('\n')]) + f'</li>\n</ul>' + html[m.end(1):]
+
+        return html
+
+
+markdown2html = _Markdown2HTML().convert

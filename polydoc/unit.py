@@ -13,19 +13,22 @@ class Unit:
         self.line_no = line_no
         self.doc = doc
         self.parent: Optional["Unit"] = parent
-        self.links = []
+        self.links = {}
         self.language = language
 
-        for m in self.LINK_REGEX.finditer(self.doc):
+        for m in list(reversed(list(self.LINK_REGEX.finditer(self.doc)))):
             href = m.group(1) or m.group(2)
-            # if '|' not in href:
-            #     href = self.source_file_path + '|' + href
-            self.links.append(href)
-
+            k = f'LINK-{len(self.links)}'
+            self.doc = self.doc[:m.start()] + k + self.doc[m.end():]
+            self.links[k] = href
     
     @property
     def ident(self) -> str:
         return f'{self.source_file_path}|{self.kind}:{str(self)}'.replace('__doc__', '').rstrip(':')
+    
+    @property
+    def path(self) -> str:
+        return f'polydoc/{self.source_file_path}.{self.name}.html'
     
     def __str__(self) -> str:
         return f'{self.parent.name}/{self.name}' if self.parent is not None else self.name

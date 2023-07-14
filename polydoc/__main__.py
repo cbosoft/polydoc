@@ -31,7 +31,8 @@ def main(files: List[str], dirs: List[str], project_name: str, root: str):
     for dir in dirs:
         project.parse(dir)
     project.organise_links()
-    project.draw()
+    project.guess_subprojects()
+    project.write_documentation()
 
 
 if __name__ == '__main__':
