@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TITLE</title>
+        <style></style>
+        <link rel="stylesheet" href="style_template.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </head>
+    <body>
+        <div class="sidebar">
+            <div class="interior">
+                <h1><a href="#" id="projectName">Project Foo</a></h1>
+                <span id="projectVersion">v0.1.0</span>
+                <div class="vspacer-5"></div>
+                <h3>Source Tree</h3>
+                <ul id="sourceTree">
+                    <li>path/to/foo.js</li>
+                    <li>path/to/bar.js</li>
+                    <li>path/baz.js</li>
+                </ul>
+            </div>
+        </div>
+        <div class="main">
+            <div class="interior">
+                <h1><code id="sourceFileName">path/to/foo.js</code></h1>
+                <pre id="sourceCode"><a class="lineNum">1</a>/// does foo
+<a class="lineNum">2</a>function foo() {
+<a class="lineNum">3</a>    console.log('foo!');
+<a class="lineNum">4</a>}</pre>
+            </div>
+        </div>
+    </body>
+</html>
