@@ -22,33 +22,25 @@ class _DocHtmlTemplate(HtmlTemplate):
             item_line_no: int,
             doc_string: str,
             ) -> str:
+        self.set_title(f'{item_name} - {project_name}')
+        self.set_project_name(project_name, index, subprojects)
+        self.set_children(
+            id='sourceTree',
+            children=[
+                f'<li><a href="{href}">{name}</a></li>'
+                for name, href in all_source_files
+            ]
+        )
 
-        tag: bs4.Tag = self.soup.findAll(id='projectName')[0]
-        tag.clear()
-        tag.href = index
-        tag.string = project_name or 'anonymous project'
+        self.set_text(id='itemNameAndKind', text=f'{item_kind} {item_name}')
 
-        tag: bs4.Tag = self.soup.findAll(id='projectVersion')[0]
-        tag.clear()
-        for subp, ver in subprojects.items():
-            tag.append(bs4.BeautifulSoup(f'<small><b>{subp}</b> v{ver}</small><br />', 'html.parser'))
-
-        tag: bs4.Tag = self.soup.findAll(id='sourceTree')[0]
-        tag.clear()
-        for name, href in all_source_files:
-            tag.append(bs4.BeautifulSoup(f'<li><a href="{href}">{name}</a></li>', 'html.parser'))
-
-        tag: bs4.Tag = self.soup.findAll(id='itemNameAndKind')[0]
-        tag.clear()
-        tag.string = f'{item_kind} {item_name}'
-
-        tag: bs4.Tag = self.soup.findAll(id='sourceFileLink')[0]
-        tag.attrs['href'] = f'{item_source}#l{item_line_no}'
-        tag.string = f'{item_source} at line {item_line_no}'
-
-        tag: bs4.Tag = self.soup.findAll(id='docString')[0]
-        tag.clear()
-        tag.append(bs4.BeautifulSoup(doc_string, 'html.parser'))
+        self.set_link(
+            id='sourceFileLink',
+            href=f'{item_source}#l{item_line_no}',
+            text=f'{item_source} at line {item_line_no}'
+        )
+        
+        self.set_text(id='docString', text=doc_string)
 
         return self.soup.prettify(None)
 

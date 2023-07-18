@@ -19,24 +19,15 @@ class _SourceHtmlTemplate(HtmlTemplate):
             source_file_path: str,
             source_code: str,
             ) -> str:
-        tag: bs4.Tag = self.soup.findAll(id='sourceFileName')[0]
-        tag.clear()
-        tag.href = index
-        tag.string = source_file_path
-
-        tag: bs4.Tag = self.soup.findAll(id='projectName')[0]
-        tag.clear()
-        tag.string = project_name or 'anonymous project'
-
-        tag: bs4.Tag = self.soup.findAll(id='projectVersion')[0]
-        tag.clear()
-        for subp, ver in subprojects.items():
-            tag.append(bs4.BeautifulSoup(f'<small><b>{subp}</b> v{ver}</small><br />', 'html.parser'))
-
-        tag: bs4.Tag = self.soup.findAll(id='sourceTree')[0]
-        tag.clear()
-        for name, href in all_source_files:
-            tag.append(bs4.BeautifulSoup(f'<li><a href="{href}">{name}</a></li>', 'html.parser'))
+        self.set_project_name(project_name, index, subprojects)
+        self.set_text(id='sourceFileName', text=source_file_path)
+        self.set_children(
+            id='sourceTree',
+            children=[
+                f'<li><a href="{href}">{name}</a></li>'
+                for name, href in all_source_files
+            ]
+        )
 
         plain_source_lines = source_code.split('\n')
         linked_source_code = []
@@ -46,7 +37,6 @@ class _SourceHtmlTemplate(HtmlTemplate):
             link_open = f'<a id="l{line_no}" class="lineNum">'
             link_close = '</a>'
             line = f'{link_open}{line_no}{link_close}{line}\n'
-            line = bs4.BeautifulSoup(line, 'html.parser')
             linked_source_code.append(line)
             line_numbers.append(line_no)
         
@@ -57,10 +47,10 @@ class _SourceHtmlTemplate(HtmlTemplate):
             else:
                 break
         
-        tag: bs4.Tag = self.soup.findAll(id='sourceCode')[0]
-        tag.clear()
-        for line in linked_source_code:
-            tag.append(line)
+        self.set_children(
+            id='sourceCode',
+            children=linked_source_code,
+        )
 
         return self.soup.prettify(None)
 
