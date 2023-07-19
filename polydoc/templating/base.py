@@ -2,6 +2,9 @@ import os
 import bs4
 from typing import List
 
+from ..source_tree import SourceFileTree
+from ..module_tree import ModuleTree
+
 
 class HtmlTemplate:
 
@@ -47,6 +50,12 @@ class HtmlTemplate:
                     for subp, ver in subprojects.items()
                 ]
             )
+    
+    def set_source_tree(self, source_tree: SourceFileTree):
+        self.set_text('sourceTree', source_tree.to_html(''))
+    
+    def set_module_tree(self, module_tree: ModuleTree):
+        self.set_text('moduleTree', module_tree.to_html(''))
     
     def format(self, *args, **kwargs) -> str:
         raise NotImplementedError

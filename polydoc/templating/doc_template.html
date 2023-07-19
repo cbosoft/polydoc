@@ -11,13 +11,46 @@
             <div class="interior">
                 <h1><a href="#" id="projectName">Project Foo</a></h1>
                 <span id="projectVersion">v0.1.0</span>
+
                 <div class="vspacer-5"></div>
-                <h3>Source Tree</h3>
-                <ul id="sourceTree">
-                    <li>path/to/foo.js</li>
-                    <li>path/to/bar.js</li>
-                    <li>path/baz.js</li>
-                </ul>
+
+                <!-- Modules tree -->
+                <div class="modules treeContainer">
+                    <h3>Module Tree</h3>
+                    <ul id="moduleTree">
+                        <ul class="tree">
+                            <li class="node">
+                                foo
+                                <ul class="tree">
+                                    <li class="node">foo</li>
+                                    <li class="node">bar</li>
+                                </ul>
+                            </li>
+                            <li class="node">baz</li>
+                        </ul>
+                    </ul>
+                </div>
+
+                <div class="vspacer-5"></div>
+
+                <!-- Source tree -->
+                <div class="source treeContainer">
+                    <h3>Source Tree</h3>
+                    <ul id="sourceTree">
+                        <ul class="tree">
+                            <li class="node">
+                                foo
+                                <ul class="tree">
+                                    <li class="node">foo</li>
+                                    <li class="node">bar</li>
+                                </ul>
+                            </li>
+                            <li class="node">baz</li>
+                        </ul>
+                    </ul>
+                </div>
+
+
             </div>
         </div>
         <div class="main">

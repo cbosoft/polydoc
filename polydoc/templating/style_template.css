@@ -54,7 +54,8 @@ pre#sourceCode {
 
 div.interior {
     margin: 0.5em;
-    height: 100%;
+    height: calc(100% - 1em);
+    overflow: scroll;
 }
 
 div.sidebar {
@@ -79,5 +80,76 @@ div.vspacer-10 {
 
 div.main {
     width: 75vw;
-    margin-left: 20.1vw;
+    position: fixed;
+    top: 0.0px;
+    left: 20.1vw;
+    width: 79.9vw;
+    height: 100vh;
+}
+
+.tree {
+    --spacing: 1.5rem;
+    --radius: 5px;
+}
+
+ul.tree{
+    margin-left  : calc(var(--radius) - var(--spacing));
+    padding-left : 0;
+}
+
+ul.tree li{
+    display      : block;
+    position     : relative;
+    padding-left : calc(2 * var(--spacing) - var(--radius) - 2px);
+    border-left : 2px solid black;
+}
+
+ul.tree li:last-child{
+    border-color : transparent;
+}
+
+ul.tree li::before {
+    content      : '';
+    display      : block;
+    position     : absolute;
+    top          : calc(var(--spacing)*-0.25);
+    left         : -2px;
+    width        : calc(var(--spacing));
+    height       : calc(var(--spacing)*0.5 + 4px);
+    border       : solid black;
+    border-width : 0px 0px 2px 2px;
+}
+
+.tree li::after {
+    content       : '';
+    display       : block;
+    position      : absolute;
+    top           : calc(var(--spacing)*0.5 - var(--radius) - 1px);
+    left          : calc(var(--spacing) - var(--radius) );
+    width         : calc(2 * var(--radius));
+    height        : calc(2 * var(--radius));
+    border-radius : 50%;
+    background    : black;
+}
+
+.treeContainer {
+    background-color: #e5e5ef;
+    border: 2px solid black;
+    padding: 0.1em;
+    border-radius: 0.1em;
+}
+
+.treeContainer h3 {
+    padding: 0.0px;
+    margin: 0.2em;
+    border-bottom: 1px solid black;
+    width: calc(100% - 0.4em);
+}
+
+.treeContainer.source {
+    background-color: #e5e5ef;
+}
+
+.treeContainer.modules {
+    background-color: #efe5e5;
 }

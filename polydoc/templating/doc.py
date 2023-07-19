@@ -2,6 +2,8 @@ from typing import Dict, List
 
 import bs4
 
+from ..source_tree import SourceFileTree
+from ..module_tree import ModuleTree
 from .base import HtmlTemplate
 
 
@@ -15,7 +17,8 @@ class _DocHtmlTemplate(HtmlTemplate):
             index: str,
             project_name: str,
             subprojects: Dict[str, str],
-            all_source_files: List[str],
+            all_source_files: SourceFileTree,
+            all_modules: ModuleTree,
             item_name: str,
             item_kind: str,
             item_source: str,
@@ -24,13 +27,8 @@ class _DocHtmlTemplate(HtmlTemplate):
             ) -> str:
         self.set_title(f'{item_name} - {project_name}')
         self.set_project_name(project_name, index, subprojects)
-        self.set_children(
-            id='sourceTree',
-            children=[
-                f'<li><a href="{href}">{name}</a></li>'
-                for name, href in all_source_files
-            ]
-        )
+        self.set_source_tree(all_source_files)
+        self.set_module_tree(all_modules)
 
         self.set_text(id='itemNameAndKind', text=f'{item_kind} {item_name}')
 

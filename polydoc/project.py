@@ -8,7 +8,9 @@ from matplotlib import pyplot as plt
 from .unit import Unit
 from .parse import parse
 from .parse.utils import markdown2html
-from .templating import format_source_as_html, format_doc_as_html
+from .templating import format_source_as_html, format_doc_as_html, format_index_as_html
+from .source_tree import SourceFileTree
+from .module_tree import ModuleTree
 
 
 class Project:
@@ -27,6 +29,11 @@ class Project:
         self.graph = nx.DiGraph()
         self.links = {}
         self.sources = []
+
+    @property
+    def index(self) -> str:
+        _ = self
+        return f'polydoc/index.html'
     
     def parse(self, fn: str):
         if self.name is None:
@@ -135,11 +142,13 @@ class Project:
             if unit.source_file_path == source_file:
                 contents[unit.line_no - 1] = f'<a id="l{unit.line_no}" href="{unit_path}">' + contents[unit.line_no - 1] + '</a>'
         contents = ''.join(contents)
+        source_dir = os.path.dirname(f'polydoc/sources/{source_file}')
         return format_source_as_html(
-            index=os.path.relpath('polydoc/sources/' + os.path.dirname(self.root) + '/index.html', source_file),
+            index=os.path.relpath(self.index, source_dir),
             project_name=self.name,
             subprojects=self.subprojects,
-            all_source_files=[],
+            all_source_files=SourceFileTree.from_file_list(self.sources, source_dir),
+            all_modules=ModuleTree.from_graph(self.graph, source_dir),
             source_file_path=source_file,
             source_code=contents,
         )
@@ -164,11 +173,13 @@ class Project:
     def html_for_doc(self, unit: Unit) -> str:
         unit_doc = self.get_doc_fixed_links_html(unit)
         source_path = os.path.relpath(f'polydoc/sources/{unit.source_file_path}.html', os.path.dirname(unit.path))
+        unit_dir = os.path.dirname(unit.path)
         return format_doc_as_html(
-            index=os.path.relpath('polydoc/sources/' + os.path.dirname(self.root) + '/index.html', unit.path),
+            index=os.path.relpath(self.index, unit_dir),
             project_name=self.name,
             subprojects=self.subprojects,
-            all_source_files=[],
+            all_source_files=SourceFileTree.from_file_list(self.sources, unit_dir),
+            all_modules=ModuleTree.from_graph(self.graph, unit_dir),
             item_name=unit.name,
             item_kind=unit.kind,
             item_source=source_path,
@@ -184,6 +195,13 @@ class Project:
         units = nx.get_node_attributes(self.graph, 'unit')
         for unit in units.values():
             files[unit.path] = self.html_for_doc(unit)
+        
+        files[self.index] = format_index_as_html(
+            project_name=self.name,
+            subprojects=self.subprojects,
+            all_source_files=SourceFileTree.from_file_list(self.sources, os.path.dirname(self.index)),
+            all_modules=ModuleTree.from_graph(self.graph, os.path.dirname(self.index))
+        )
 
         for filename, filecontents in files.items():
             filename = os.path.join(self.root, filename)
