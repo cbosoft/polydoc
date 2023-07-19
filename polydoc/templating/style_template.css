@@ -2,8 +2,11 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+code, pre, pre * {
+    font-family: 'Courier New', Courier, monospace;
+}
+
 code {
-    font-family:'Courier New', Courier, monospace;
     background-color: #dfdfdf;
     border: 2px solid black;
     padding: 0.1em;
@@ -11,12 +14,25 @@ code {
 }
 
 pre {
-    font-family: 'Courier New', Courier, monospace;
     padding: 0.2em;
 }
 
-pre * {
-    font-family: 'Courier New', Courier, monospace;
+pre#lineNumbers {
+    width: 2em;
+    text-align: right;
+    margin-right: 0.1em;
+}
+
+pre#sourceCode, pre.codeBlock {
+    background-color: #dfdfdf;
+    border: 2px solid black;
+    border-radius: 0.2em;
+    /* display: inline-block; */
+}
+
+pre.codeBlock {
+    min-width: 50%;
+    width: fit-content;
 }
 
 h1#projectName {
@@ -37,19 +53,6 @@ div.twocolumn {
     display: flex;
     flex-direction: row;
     align-items: start;
-}
-
-pre#lineNumbers {
-    width: 2em;
-    text-align: right;
-    margin-right: 0.1em;
-}
-
-pre#sourceCode {
-    background-color: #dfdfdf;
-    border: 2px solid black;
-    border-radius: 0.2em;
-    display: inline-block;
 }
 
 div.interior {

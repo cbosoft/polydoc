@@ -24,6 +24,7 @@ class Project:
 
     def __init__(self, name: str, root: str):
         self.name = name
+        self.description = None
         self.subprojects = {}
         self.root = root
         self.graph = nx.DiGraph()
@@ -38,6 +39,11 @@ class Project:
     def parse(self, fn: str):
         if self.name is None:
             self.name = os.path.basename(self.root)
+        index_md = os.path.join(self.root, 'README.md')
+        if os.path.isfile(index_md):
+            with open(index_md) as f:
+                self.description = markdown2html(f.read())
+
         nodes = parse(fn, relative_to=os.path.dirname(self.root), file_list=self.sources)
         for nodekey, unit in nodes.items():
             self.graph.add_node(nodekey, unit=unit)
@@ -200,7 +206,8 @@ class Project:
             project_name=self.name,
             subprojects=self.subprojects,
             all_source_files=SourceFileTree.from_file_list(self.sources, os.path.dirname(self.index)),
-            all_modules=ModuleTree.from_graph(self.graph, os.path.dirname(self.index))
+            all_modules=ModuleTree.from_graph(self.graph, os.path.dirname(self.index)),
+            project_description=self.description,
         )
 
         for filename, filecontents in files.items():
