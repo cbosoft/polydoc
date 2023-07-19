@@ -52,8 +52,7 @@ class _Markdown2HTML:
         html = markdown
 
         # TODO: paragraphs?
-
-        html = html.replace('\n\n', '<p>')
+        
         for regex, tag, attrs in self.TRANSLATIONS:
             for m in reversed(list(regex.finditer(html))):
                 inner = m.group(2)
